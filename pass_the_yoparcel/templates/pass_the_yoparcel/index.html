@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>pass the yoparcel!</title>
+
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+          integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+          crossorigin=""/>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+            integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+            crossorigin=""></script>
+    <!-- ^Leaflet -->
+
+    <!-- Polyline decorator -->
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.min.js">
+    </script>
+    <!-- ^Polyline decorator -->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0px;
+            padding: 0px;
+        }
+
+        #map {
+            flex: 1;
+        }
+
+
+
+
+
+    </style>
+
+</head>
+<body>
+
+<div id="map"></div>
+
+<script>
+    var map = L.map('map');
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    var latlngs = [];
+    var marker = null;
+    var latlng = null;
+    var title = null;
+    var i = 0;
+
+    {% for r in recipients %}
+
+    if (i == 0) {
+        title = "Start: " + "{{r.name}}";;
+    } else {
+        title = i + ": " + "{{r.name}}";
+    }
+    i++;
+
+    marker = L.marker([{{r.lat}}, {{r.lng}}]).addTo(map).bindPopup(title);
+
+    latlngs.push(marker.getLatLng());
+
+    {% endfor %}
+
+    map.fitBounds(L.latLngBounds(latlngs), {padding: [10, 10]});
+    var polyline = L.polyline(latlngs, {color: '#119911', opacity: 0.7}).addTo(map);
+    L.polylineDecorator(polyline, {
+        patterns: [
+            {
+                offset: 50,
+                repeat: 150,
+                symbol: L.Symbol.arrowHead({pixelSize: 8, polygon: false, pathOptions: {stroke: true, color: '#119911', opacity: 0.7}})
+            }
+        ]
+    }).addTo(map);
+
+</script>
+
+</body>
+</html>
