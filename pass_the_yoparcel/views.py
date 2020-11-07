@@ -1,10 +1,23 @@
 import random
 from django.shortcuts import render
+from django.http import HttpResponseRedirect
 
 from .models import MagicWord, Person
+from .forms import WordForm
 
 
 def index_view(request):
+
+    if request.method == 'POST':
+        # The request is a post!
+        form = WordForm(request.POST)
+        if form.is_valid():
+            word = form.cleaned_data['word'].strip().lower()
+            if word.isalpha():
+                # If anything is funky, just fall back to the GET behaviour
+                return HttpResponseRedirect(word)
+
+    # Get all 'used' recipients in order (mapped to a MagicWord)
     recipients = map(lambda a: a.recipient,
                      MagicWord.objects.exclude(recipient=None).select_related('recipient').order_by('index'))
     context = {
@@ -14,8 +27,8 @@ def index_view(request):
 
 
 def word_view(request, word):
-    # Get the MagicWord object based on w.
     try:
+        # Get the MagicWord object.
         this_magic_word = MagicWord.objects.get(word=word)
 
         # If you're here, this_magic_word should have a recipient_id
